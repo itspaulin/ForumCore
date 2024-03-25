@@ -1,15 +1,16 @@
 import {
-  ConflictException,
   HttpCode,
   Body,
   Controller,
   Post,
   UsePipes,
+  UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common'
-import { PrismaService } from '@/infra/database/prisma/prisma.service'
-import { hash } from 'bcryptjs'
 import { z } from 'zod'
 import { ZodValidationPipe } from '@/infra/http/pipes/zod-validations.pipe'
+import { RegisterStudentUseCase } from '@/domain/forum/application/use-cases/register-student'
+import { WrongCredentialsError } from '@/domain/forum/application/use-cases/errors/wrong-credentials-error'
 
 const createAccountBodySchema = z.object({
   name: z.string(),
@@ -21,7 +22,7 @@ type CreateAccountSchema = z.infer<typeof createAccountBodySchema>
 
 @Controller('/accounts')
 export class CreateAccountController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly registerStudent: RegisterStudentUseCase) {}
 
   @Post()
   @HttpCode(201)
@@ -29,26 +30,22 @@ export class CreateAccountController {
   async handle(@Body() body: CreateAccountSchema) {
     const { name, email, password } = createAccountBodySchema.parse(body)
 
-    const userWithSameEmail = await this.prisma.user.findUnique({
-      where: {
-        email,
-      },
+    const result = await this.registerStudent.execute({
+      name,
+      email,
+      password,
     })
 
-    if (userWithSameEmail) {
-      throw new ConflictException('Email is already in use')
+    if (result.isLeft()) {
+      const error = result.value
+
+      switch (error.constructor) {
+        case WrongCredentialsError:
+          throw new UnauthorizedException(error.message)
+
+        default:
+          throw new BadRequestException(error.message)
+      }
     }
-
-    const hashedPassword = await hash(password, 8)
-
-    console.log(hashedPassword)
-
-    await this.prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-      },
-    })
   }
 }
