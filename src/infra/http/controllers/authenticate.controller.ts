@@ -3,7 +3,6 @@ import {
   Body,
   ConflictException,
   Controller,
-  HttpCode,
   Post,
   UsePipes,
 } from '@nestjs/common'
@@ -11,6 +10,7 @@ import { ZodValidationPipe } from '@/infra/http/pipes/zod-validations.pipe'
 import { z } from 'zod'
 import { AutheticateStudentUseCase } from '@/domain/forum/application/use-cases/authenticate-student'
 import { StudentAlreadyExistsError } from '@/domain/forum/application/use-cases/errors/student-already-exist-error'
+import { Public } from '@/infra/auth/public'
 
 const authenticateBodySchema = z.object({
   email: z.string().email(),
@@ -20,11 +20,11 @@ const authenticateBodySchema = z.object({
 type AuthenticateBodySchema = z.infer<typeof authenticateBodySchema>
 
 @Controller('/sessions')
+@Public()
 export class AuthenticateController {
   constructor(private authenticateStudent: AutheticateStudentUseCase) {}
 
   @Post()
-  @HttpCode(201)
   @UsePipes(new ZodValidationPipe(authenticateBodySchema))
   async handle(@Body() body: AuthenticateBodySchema) {
     const { email, password } = body
