@@ -1,28 +1,57 @@
 import { PaginationParams } from '@/core/repositories/pagination-params'
 import { AnswersCommentRepository } from '@/domain/forum/application/repositories/answers-comments-repository'
-import { AnswerComment } from '@/domain/forum/enterprise/entities/answer-comment'
 import { Injectable } from '@nestjs/common'
+import { PrismaAnswerCommentMapper } from '../mappers/prisma-answer-comment-mapper'
+import { PrismaService } from '../prisma.service'
+import { AnswerComment } from '@/domain/forum/enterprise/entities/answer-comment'
 
 @Injectable()
 export class PrismaAnswersCommentsRepository
   implements AnswersCommentRepository
 {
-  findById(id: string): Promise<AnswerComment | null> {
-    throw new Error('Method not implemented.')
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(answercomment: AnswerComment): Promise<void> {
+    const data = PrismaAnswerCommentMapper.toPrisma(answercomment)
+
+    await this.prisma.comment.create({
+      data,
+    })
   }
 
-  findByAnswerId(
+  async delete(answercomment: AnswerComment): Promise<void> {
+    await this.prisma.comment.delete({
+      where: {
+        id: answercomment.id.toString(),
+      },
+    })
+  }
+
+  async findById(id: string): Promise<AnswerComment | null> {
+    const answercomment = await this.prisma.comment.findUnique({
+      where: {
+        id,
+      },
+    })
+
+    if (!answercomment) {
+      return null
+    }
+
+    return PrismaAnswerCommentMapper.toDomain(answercomment)
+  }
+
+  async findByAnswerId(
     answerId: string,
-    params: PaginationParams,
+    { page }: PaginationParams,
   ): Promise<AnswerComment[]> {
-    throw new Error('Method not implemented.')
-  }
+    const questions = await this.prisma.comment.findMany({
+      where: { answerId },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      skip: (page - 1) * 20,
+    })
 
-  delete(answers: AnswerComment): Promise<void> {
-    throw new Error('Method not implemented.')
-  }
-
-  create(answers: AnswerComment): Promise<void> {
-    throw new Error('Method not implemented.')
+    return questions.map(PrismaAnswerCommentMapper.toDomain)
   }
 }
