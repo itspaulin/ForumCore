@@ -12,17 +12,18 @@ const pageQueryParamSchema = z
   .pipe(z.number().min(1))
 
 const queryValidationPipe = new ZodValidationPipe(pageQueryParamSchema)
+
 type PageQueryParamSchema = z.infer<typeof pageQueryParamSchema>
 
 @Controller('/questions')
 export class FetchRecentQuestionsController {
-  constructor(
-    private readonly fetchRecentsQuestions: FetchRecentsQuestionsUseCase,
-  ) {}
+  constructor(private fetchRecentQuestions: FetchRecentsQuestionsUseCase) {}
 
   @Get()
   async handle(@Query('page', queryValidationPipe) page: PageQueryParamSchema) {
-    const result = await this.fetchRecentsQuestions.execute({ page })
+    const result = await this.fetchRecentQuestions.execute({
+      page,
+    })
 
     if (result.isLeft()) {
       throw new BadRequestException()
@@ -30,8 +31,6 @@ export class FetchRecentQuestionsController {
 
     const questions = result.value.questions
 
-    return {
-      questions: questions.map(QuestionsPresenter.toHTTP),
-    }
+    return { questions: questions.map(QuestionsPresenter.toHTTP) }
   }
 }
