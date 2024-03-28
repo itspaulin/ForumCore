@@ -21,4 +21,16 @@ export class InMemoryQuestionAttachmentRepository
 
     return questionAttachment
   }
+
+  async createMany(attachments: QuestionAttachment[]): Promise<void> {
+    this.items.push(...attachments)
+  }
+
+  async deleteMany(attachments: QuestionAttachment[]): Promise<void> {
+    const questionAttachment = this.items.filter((item) => {
+      return !attachments.some((attachments) => attachments.equals(item))
+    })
+
+    this.items = questionAttachment
+  }
 }
