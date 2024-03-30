@@ -1,7 +1,7 @@
+import { AnswersCommentRepository } from '@/domain/forum/application/repositories/answers-comments-repository'
 import { Either, right } from '@/core/either'
-import { AnswerComment } from '../../enterprise/entities/answer-comment'
-import { AnswersCommentRepository } from '../repositories/answers-comments-repository'
 import { Injectable } from '@nestjs/common'
+import { CommentWithAuthor } from '../../enterprise/entities/value-objects/comment-with-author'
 
 interface FetchAnswerCommentsUseCaseRequest {
   answerId: string
@@ -11,28 +11,28 @@ interface FetchAnswerCommentsUseCaseRequest {
 type FetchAnswerCommentsUseCaseResponse = Either<
   null,
   {
-    answerComments: AnswerComment[]
+    comments: CommentWithAuthor[]
   }
 >
+
 @Injectable()
-export class FecthAnswersCommentsUseCase {
-  constructor(
-    private readonly answersCommentRepository: AnswersCommentRepository,
-  ) {}
+export class FetchAnswerCommentsUseCase {
+  constructor(private answerCommentsRepository: AnswersCommentRepository) {}
 
   async execute({
-    page,
     answerId,
+    page,
   }: FetchAnswerCommentsUseCaseRequest): Promise<FetchAnswerCommentsUseCaseResponse> {
-    const answerComments = await this.answersCommentRepository.findByAnswerId(
-      answerId,
-      {
-        page,
-      },
-    )
+    const comments =
+      await this.answerCommentsRepository.findManyByAnswerIdWithAuthor(
+        answerId,
+        {
+          page,
+        },
+      )
 
     return right({
-      answerComments,
+      comments,
     })
   }
 }

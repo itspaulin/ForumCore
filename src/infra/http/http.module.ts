@@ -35,8 +35,8 @@ import { DeleteAnswerCommentController } from './controllers/delete-answer-comme
 import { DeleteAnswerCommentUseCase } from '@/domain/forum/application/use-cases/delete-answer-comment'
 import { FetchQuestionCommentController } from './controllers/fetch-question-comment.controller'
 import { FecthQuestionsCommentsUseCase } from '@/domain/forum/application/use-cases/fetch-question-comments'
-import { FetchAnswerCommentController } from './controllers/fetch-answer-comment.controller'
-import { FecthAnswersCommentsUseCase } from '@/domain/forum/application/use-cases/fetch-answer-comments'
+import { FetchAnswerCommentsController } from './controllers/fetch-answer-comment.controller'
+import { FetchAnswerCommentsUseCase } from '@/domain/forum/application/use-cases/fetch-answer-comments'
 import { UploadAttachmentController } from './controllers/upload-attachment.controller'
 import { UploadAndCreateAttachmentUseCase } from '@/domain/forum/application/use-cases/upload-and-create-attachment'
 import { StorageModule } from '../storage/storage.module'
@@ -61,7 +61,7 @@ import { StorageModule } from '../storage/storage.module'
     CommentOnAnswerController,
     DeleteAnswerCommentController,
     FetchQuestionCommentController,
-    FetchAnswerCommentController,
+    FetchAnswerCommentsController,
     UploadAttachmentController,
   ],
   providers: [
@@ -82,7 +82,7 @@ import { StorageModule } from '../storage/storage.module'
     CommentOnAnswerUseCase,
     DeleteAnswerCommentUseCase,
     FecthQuestionsCommentsUseCase,
-    FecthAnswersCommentsUseCase,
+    FetchAnswerCommentsUseCase,
     UploadAndCreateAttachmentUseCase,
   ],
 })

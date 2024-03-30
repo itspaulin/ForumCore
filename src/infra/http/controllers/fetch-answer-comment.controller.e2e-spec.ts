@@ -7,15 +7,14 @@ import request from 'supertest'
 import { AnswerFactory } from 'test/factories/make-answer'
 import { AnswerCommentFactory } from 'test/factories/make-answer-comment'
 import { QuestionsFactory } from 'test/factories/make-question'
-import { QuestionCommentFactory } from 'test/factories/make-question-comment'
 import { StudentFactory } from 'test/factories/make-student'
 
-describe('Fetch answers comments (E2E)', () => {
+describe('Fetch answer comments (E2E)', () => {
   let app: INestApplication
   let studentFactory: StudentFactory
+  let questionFactory: QuestionsFactory
   let answerFactory: AnswerFactory
   let answerCommentFactory: AnswerCommentFactory
-  let questionsFactory: QuestionsFactory
   let jwt: JwtService
 
   beforeAll(async () => {
@@ -23,47 +22,49 @@ describe('Fetch answers comments (E2E)', () => {
       imports: [AppModule, DatabaseModule],
       providers: [
         StudentFactory,
+        QuestionsFactory,
         AnswerFactory,
         AnswerCommentFactory,
-        QuestionsFactory,
-        QuestionCommentFactory,
       ],
     }).compile()
 
     app = moduleRef.createNestApplication()
+
     studentFactory = moduleRef.get(StudentFactory)
-    questionsFactory = moduleRef.get(QuestionsFactory)
-    answerCommentFactory = moduleRef.get(AnswerCommentFactory)
+    questionFactory = moduleRef.get(QuestionsFactory)
     answerFactory = moduleRef.get(AnswerFactory)
+    answerCommentFactory = moduleRef.get(AnswerCommentFactory)
     jwt = moduleRef.get(JwtService)
 
     await app.init()
   })
 
   test('[GET] /answers/:answerId/comments', async () => {
-    const user = await studentFactory.makePrismaStudent()
+    const user = await studentFactory.makePrismaStudent({
+      name: 'John Doe',
+    })
 
     const accessToken = jwt.sign({ sub: user.id.toString() })
 
-    const question = await questionsFactory.makePrismaQuestions({
+    const question = await questionFactory.makePrismaQuestions({
       authorId: user.id,
     })
 
     const answer = await answerFactory.makePrismaAnswers({
-      authorId: user.id,
       questionId: question.id,
+      authorId: user.id,
     })
 
     await Promise.all([
       answerCommentFactory.makePrismaAnswerComment({
         authorId: user.id,
         answerId: answer.id,
-        content: 'comment 01',
+        content: 'Comment 01',
       }),
       answerCommentFactory.makePrismaAnswerComment({
         authorId: user.id,
         answerId: answer.id,
-        content: 'comment 02',
+        content: 'Comment 02',
       }),
     ])
 
@@ -77,8 +78,14 @@ describe('Fetch answers comments (E2E)', () => {
     expect(response.statusCode).toBe(200)
     expect(response.body).toEqual({
       comments: expect.arrayContaining([
-        expect.objectContaining({ content: 'comment 01' }),
-        expect.objectContaining({ content: 'comment 02' }),
+        expect.objectContaining({
+          content: 'Comment 01',
+          authorName: 'John Doe',
+        }),
+        expect.objectContaining({
+          content: 'Comment 01',
+          authorName: 'John Doe',
+        }),
       ]),
     })
   })
