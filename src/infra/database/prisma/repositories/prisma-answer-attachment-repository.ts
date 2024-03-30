@@ -23,4 +23,12 @@ export class PrismaAnswersAttachmentsRepository
   async deleteManyByAnswerId(answerId: string): Promise<void> {
     await this.prisma.attachment.deleteMany({ where: { answerId } })
   }
+
+  createMany(attachments: AnswerAttachment[]): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
+
+  deleteMany(attachments: AnswerAttachment[]): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
 }
