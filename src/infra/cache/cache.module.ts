@@ -7,6 +7,7 @@ import { RedisService } from './redis/redis.service'
 @Module({
   imports: [EnvModule],
   providers: [
+    RedisService,
     {
       provide: CacheRepository,
       useClass: RedisCacheRepository,
